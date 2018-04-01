@@ -463,7 +463,6 @@ $(function() {
             }
             if (e.keyCode === 40 || e.keyCode === 83) {
                 this.busDriverBus.speed = Math.max(this.busDriverBus.speed - 1, 0);
-                this.busDriverBus.pressed = true;
             }
         },
 
@@ -472,7 +471,7 @@ $(function() {
                 return;
             }
             if (e.keyCode === 38 || e.keyCode === 87) {
-	        this.busDriverBus.pressed = false;
+                this.busDriverBus.pressed = false;
             }
         },
 
