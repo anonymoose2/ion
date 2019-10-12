@@ -35,12 +35,14 @@ def set_historical_user(collector, field, sub_objs, using):
 
 def handle_eighth_sponsor_deletion(in_obj, eighth_sponsor):
     teststaff, _ = get_user_model().objects.get_or_create(id=7011)
+    teststaff_sponsor = eighth_sponsor.objects.create(user=teststaff, first_name=teststaff.first_name or "Test", last_name=teststaff.last_name or "Staff")
     c = Collector(using="default")
     c.collect([in_obj])
     objects = c.instances_with_model()
     for obj in objects:
         if not isinstance(obj[1], eighth_sponsor):
             obj[1].user = teststaff
+            obj[1].eighthsponsor = teststaff_sponsor
             obj[1].save()
         else:
             original = obj[1]
