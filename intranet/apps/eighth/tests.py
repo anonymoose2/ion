@@ -486,6 +486,53 @@ class EighthTest(EighthAbstractTest):
         EighthScheduledActivity.objects.create(activity=act, block=block_future)
         self.assertQuerysetEqual(act.get_active_schedulings(), [repr(schact_today)])
 
+    def test_delete_user_signup(self):
+        self.make_admin()
+        block = self.add_block(date="2015-01-01", block_letter="A")
+        act = self.add_activity(name="Test Activity 1")
+        schact = self.schedule_activity(act.id, block.id)
+
+        user = self.login("1999duser")
+        user.graduation_year = timezone.localdate().year + 1
+        user.save()
+
+        self.make_admin()
+        schact.add_user(user, force=True)
+        signup = user.eighthsignup_set.get(scheduled_activity=schact)
+
+        schact.refresh_from_db()
+        self.assertIn(schact.archived_member_count, (0, None))
+
+        user.delete()
+
+        schact.refresh_from_db()
+        self.assertEqual(schact.archived_member_count, 1)
+
+    def test_delete_user_sponsor(self):
+        self.make_admin()
+        block1 = self.add_block(date="2015-01-01", block_letter="A")
+        block2 = self.add_block(date="2015-01-01", block_letter="B")
+        act1 = self.add_activity(name="Test Activity 1")
+        schact1 = self.schedule_activity(act1.id, block1.id)
+        act2 = self.add_activity(name="Test Activity 2")
+        schact2 = self.schedule_activity(act2.id, block2.id)
+
+        sponsor_user = self.create_sponsor()
+        sponsor = EighthSponsor.objects.create(user=sponsor_user, first_name=sponsor_user.first_name, last_name=sponsor_user.last_name)
+        schact1.sponsors.add(sponsor)
+        act2.sponsors.add(sponsor)
+
+        schact1.add_user(self.user, force=True)
+
+        sponsor_user.delete()
+
+        self.assertFalse(EighthSponsor.objects.filter(pk=sponsor.pk).exists())
+        schact1.refresh_from_db()
+        act2.refresh_from_db()
+        # "Test Staff" user
+        self.assertQuerysetEqual(schact1.sponsors.values_list("user_id", flat=True), ["7011"])
+        self.assertQuerysetEqual(act2.sponsors.values_list("user_id", flat=True), ["7011"])
+
 
 class EighthAdminTest(EighthAbstractTest):
     def add_activity(self, **args):
