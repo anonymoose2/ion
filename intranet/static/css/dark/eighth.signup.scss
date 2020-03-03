@@ -15,7 +15,7 @@
 .day-picker {
     border-color: $darkborder;
 
-    &-buttons button {
+    &-buttons button, &-buttons button:active, &-buttons button:hover {
         border-color: $darkborder;
     }
 
